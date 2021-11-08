@@ -42,7 +42,7 @@ function drawSnake() {
 }
 drawSnake();
 
-function moveRight() {
+const moveRight = () => {
   let currentHead = snakeState[snakeState.length - 1];
   let row = currentHead[0];
   let col = currentHead[1];
@@ -54,10 +54,10 @@ function moveRight() {
 
   drawSnake();
 
-  // console.log(snakeState);
-}
+  //   console.log(snakeState);
+};
 
-function moveLeft() {
+const moveLeft = () => {
   let currentHead = snakeState[snakeState.length - 1];
   let row = currentHead[0];
   let col = currentHead[1];
@@ -70,9 +70,9 @@ function moveLeft() {
   drawSnake();
 
   // console.log(snakeState);
-}
+};
 
-function moveUp() {
+const moveUp = () => {
   let currentHead = snakeState[snakeState.length - 1];
   let row = currentHead[0];
   let col = currentHead[1];
@@ -84,10 +84,10 @@ function moveUp() {
 
   drawSnake();
 
-  console.log(snakeState);
-}
+  //   console.log(snakeState);
+};
 
-function moveDown() {
+const moveDown = () => {
   let currentHead = snakeState[snakeState.length - 1];
   let row = currentHead[0];
   let col = currentHead[1];
@@ -100,20 +100,36 @@ function moveDown() {
   drawSnake();
 
   console.log(snakeState);
-}
+};
 
-function controlSnake() {
-  window.addEventListener("keyup", controlSnake());
+const controlSnake = (e) => {
+  window.addEventListener("keydown", controlSnake(e));
   if (e.keyCode === 39) {
-    moveRight;
+    moveRight();
   } else if (e.keyCode === 37) {
-    moveLeft;
+    moveLeft();
   } else if (e.keyCode === 38) {
-    moveUp;
+    moveUp();
   } else if (e.keyCode === 40) {
-    moveDown;
+    moveDown();
+  } else {
+    return;
   }
-}
+  //   switch (event.keyCode) {
+  //     case "ArrowRight":
+  //       moveRight;
+  //       break;
+  //     case "ArrowLeft":
+  //       moveLeft;
+  //       break;
+  //     case "ArrowUp":
+  //       moveUp;
+  //       break;
+  //     case "ArrowDown":
+  //       moveDown;
+  //       break;
+  //   }
+};
 
 // setInterval(moveRight, 2000);
 
@@ -130,7 +146,7 @@ let currentTimeBetweenFires = 2000;
 
 const updateInterval = (newTimeBetweenFire) => {
   return setInterval(() => {
-    controlSnake();
+    moveDown();
     console.log("fired func with new time between fires: ", newTimeBetweenFire);
   }, newTimeBetweenFire);
 };
@@ -173,3 +189,14 @@ GAME_DIFFICULTY.addEventListener("change", (e) => {
   modifyInterval(newIntervalTime);
   console.log("newInterval is: ", newIntervalTime);
 });
+
+const startButton = document.getElementById("game-start");
+startButton.addEventListener("click", startGame());
+
+const restartButton = document.getElementById("restart");
+restartButton.addEventListener("click", restartGame());
+
+function restartGame() {
+  console.log("reload");
+  window.location.reload();
+}

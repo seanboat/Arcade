@@ -42,6 +42,35 @@ function drawSnake() {
 }
 drawSnake();
 
+const controlSnake = (e) => {
+  window.addEventListener("keydown", controlSnake(e));
+  if (e.keyCode === 39) {
+    moveRight();
+  } else if (e.keyCode === 37) {
+    moveLeft();
+  } else if (e.keyCode === 38) {
+    moveUp();
+  } else if (e.keyCode === 40) {
+    moveDown();
+  } else {
+    return;
+  }
+  //   switch (event.keyCode) {
+  //     case "ArrowRight":
+  //       moveRight;
+  //       break;
+  //     case "ArrowLeft":
+  //       moveLeft;
+  //       break;
+  //     case "ArrowUp":
+  //       moveUp;
+  //       break;
+  //     case "ArrowDown":
+  //       moveDown;
+  //       break;
+  //   }
+};
+
 const moveRight = () => {
   let currentHead = snakeState[snakeState.length - 1];
   let row = currentHead[0];
@@ -100,35 +129,6 @@ const moveDown = () => {
   drawSnake();
 
   console.log(snakeState);
-};
-
-const controlSnake = (e) => {
-  window.addEventListener("keydown", controlSnake(e));
-  if (e.keyCode === 39) {
-    moveRight();
-  } else if (e.keyCode === 37) {
-    moveLeft();
-  } else if (e.keyCode === 38) {
-    moveUp();
-  } else if (e.keyCode === 40) {
-    moveDown();
-  } else {
-    return;
-  }
-  //   switch (event.keyCode) {
-  //     case "ArrowRight":
-  //       moveRight;
-  //       break;
-  //     case "ArrowLeft":
-  //       moveLeft;
-  //       break;
-  //     case "ArrowUp":
-  //       moveUp;
-  //       break;
-  //     case "ArrowDown":
-  //       moveDown;
-  //       break;
-  //   }
 };
 
 // setInterval(moveRight, 2000);

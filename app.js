@@ -1,9 +1,26 @@
 const BOARD = document.getElementById("board");
+document.getElementById("gameMessage").innerText =
+  `Current High Score: ${localStorage.getItem("previousScore")}` || "Snake";
 
-let state = {
-  board: [],
-  currentDirection: "",
-};
+const initSnake = [
+  [12, 11],
+  [12, 12],
+  [12, 13],
+];
+
+function getNewState() {
+  return {
+    board: [],
+    currentDirection: "ArrowRight",
+    snake: [...initSnake],
+    grape: [14, 12],
+    status: "PREGAME", // use 'PLAYING', 'LOST' as game statuses
+    gameInterval: null,
+    score: 0,
+  };
+}
+
+let state = getNewState();
 
 function createBoard(m, n) {
   for (let i = 0; i < m; i++) {
@@ -26,175 +43,154 @@ const snakeNodes = Array.from(
     '[id="square-12:12"], [id="square-12:11"], [id="square-12:10"]'
   )
 );
-98;
 
-let snakeState = [
-  [12, 11],
-  [12, 12],
-  [12, 13],
-];
-// console.log(snakeState);
-
-function restartGame() {
-  console.log("reload");
+document.getElementById("game-restart").addEventListener("click", () => {
   window.location.reload();
-}
+});
 
 function drawSnake() {
-  // each snakeState element is an array [rowIdx, colIdx]
-  snakeState.forEach(([rowIdx, colIdx]) => {
+  // each state.snake element is an array [rowIdx, colIdx]
+  state.snake.forEach(([rowIdx, colIdx]) => {
     const node = document.getElementById(`square-${rowIdx}:${colIdx}`);
     node.classList.add("snake");
   });
 }
 
-function drawGrape() {
+function selectGrape() {
+  const [currGrapeX, currGrapeY] = state.grape;
+
+  const grape = document.getElementById(`square-${currGrapeX}:${currGrapeY}`);
+
+  if (grape) {
+    grape.classList.remove("grape");
+  }
+
   let gx = Math.floor(Math.random() * 25);
   let gy = Math.floor(Math.random() * 25);
-  let grapeState = [[gx, gy]];
-  // console.log(grapeState);
-  grapeState.forEach(([rowIdx, colIdx]) => {
-    const node = document.getElementById(`square-${rowIdx}:${colIdx}`);
-    node.classList.add("grape");
-  });
+
+  let node = document.getElementById(`square-${gx}:${gy}`);
+
+  while (node.classList.contains("snake")) {
+    gx = Math.floor(Math.random() * 25);
+    gy = Math.floor(Math.random() * 25);
+    node = document.getElementById(`square-${gx}:${gy}`);
+  }
+
+  node.classList.add("grape");
+
+  state.grape = [gx, gy];
 }
 
-function detectCollision() {
-  let snakeStatus = document.getElementsByClassName("snake");
-  let grapeStatus = document.getElementsByClassName("grape");
-  // snakeStatus.forEach(() => {
-  //   if (snakeStatus === grapeStatus) {
-  //     drawGrape();
-  //   }
-  // });
+function keydownListener(event) {
+  if (event.key === "ArrowUp") {
+    state.currentDirection = "ArrowUp";
+  } else if (event.key === "ArrowDown") {
+    state.currentDirection = "ArrowDown";
+  } else if (event.key === "ArrowLeft") {
+    state.currentDirection = "ArrowLeft";
+  } else if (event.key === "ArrowRight") {
+    state.currentDirection = "ArrowRight";
+  }
 }
-detectCollision();
 
 const controlSnake = () => {
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowUp") {
-      state.currentDirection = "ArrowUp";
-    } else if (event.key === "ArrowDown") {
-      state.currentDirection = "ArrowDown";
-    } else if (event.key === "ArrowLeft") {
-      state.currentDirection = "ArrowLeft";
-    } else if (event.key === "ArrowRight") {
-      state.currentDirection = "ArrowRight";
-    }
-  });
+  document.addEventListener("keydown", keydownListener);
 };
 
-const moveRight = () => {
-  let currentHead = snakeState[snakeState.length - 1];
-  let row = currentHead[0];
-  let col = currentHead[1];
-  let nextCol = col + 1;
-  let nextHead = [row, nextCol];
+function moveSnake(directiveString) {
+  const [snakeHead, snakeCol] = state.snake[state.snake.length - 1];
+  const [rowMod, colMod] = directions[state.currentDirection];
+  const nextMove = [snakeHead + rowMod, snakeCol + colMod];
 
-  snakeState.push(nextHead);
+  let nextSnake;
+  const currentTail = state.snake[0];
 
-  // paint the tail the default color before shifting old tail
-  //  background-color: #98fb98;
-  let tail = snakeState[0];
+  switch (directiveString) {
+    case "IS_GRAPE":
+      nextSnake = [...state.snake, state.grape];
+      break;
+    case "COLLISION":
+      state.status = "LOST";
+      clearInterval(state.gameInterval);
+      return;
+    default:
+      console.log("moveSnake default case no directiveString", directiveString);
+      nextSnake = [...state.snake.slice(1), nextMove];
+  }
+
   document
-    .getElementById(`square-${tail[0]}:${tail[1]}`)
+    .getElementById(`square-${currentTail[0]}:${currentTail[1]}`)
     .classList.remove("snake");
-
-  snakeState.shift();
+  state.snake = nextSnake;
   drawSnake();
-};
+}
 
-const moveLeft = () => {
-  let currentHead = snakeState[snakeState.length - 1];
-  let row = currentHead[0];
-  let col = currentHead[1];
-  let nextCol = col - 1;
-  let nextHead = [row, nextCol];
-
-  snakeState.push(nextHead);
-
-  let tail = snakeState[0];
-  document
-    .getElementById(`square-${tail[0]}:${tail[1]}`)
-    .classList.remove("snake");
-
-  snakeState.shift();
-  drawSnake();
-};
-
-const moveUp = () => {
-  let currentHead = snakeState[snakeState.length - 1];
-  let row = currentHead[0];
-  let col = currentHead[1];
-  let nextRow = row - 1;
-  let nextHead = [nextRow, col];
-
-  snakeState.push(nextHead);
-
-  let tail = snakeState[0];
-  document
-    .getElementById(`square-${tail[0]}:${tail[1]}`)
-    .classList.remove("snake");
-
-  snakeState.shift();
-  drawSnake();
-};
-
-const moveDown = () => {
-  let currentHead = snakeState[snakeState.length - 1];
-  let row = currentHead[0];
-  let col = currentHead[1];
-  let nextRow = row + 1;
-  let nextHead = [nextRow, col];
-
-  snakeState.push(nextHead);
-  let tail = snakeState[0];
-  document
-    .getElementById(`square-${tail[0]}:${tail[1]}`)
-    .classList.remove("snake");
-
-  snakeState.shift();
-  drawSnake();
+const directions = {
+  ArrowUp: [-1, 0],
+  ArrowDown: [1, 0],
+  ArrowLeft: [0, -1],
+  ArrowRight: [0, 1],
 };
 
 let currentTimeBetweenFires = 500;
 
+function eatGrape() {}
+
 const updateInterval = (newTimeBetweenFire) => {
   return setInterval(() => {
-    // console.log(state.currentDirection);
-    // take user input, save to global/state variable as 'currentDirection'?
-    // move snake in new direction
-    if (
-      state.currentDirection === "ArrowUp" &&
-      state.currentDirection !== "ArrowDown"
-    ) {
-      moveUp();
-    } else if (
-      state.currentDirection === "ArrowDown" &&
-      state.currentDirection !== "ArrowUp"
-    ) {
-      moveDown();
-    } else if (
-      state.currentDirection === "ArrowLeft" &&
-      state.currentDirection !== "ArrowRight"
-    ) {
-      moveLeft();
-    } else if (
-      state.currentDirection === "ArrowRight" &&
-      state.currentDirection !== "ArrowLeft"
-    ) {
-      moveRight();
+    const [rowMod, colMod] = directions[state.currentDirection];
+    const [snakeHeadRow, snakeHeadCol] = state.snake[state.snake.length - 1];
+    const nextMove = [snakeHeadRow + rowMod, snakeHeadCol + colMod];
+
+    const isGrape =
+      nextMove[0] === state.grape[0] && nextMove[1] === state.grape[1];
+
+    const isSnake = state.snake.some(
+      ([snakeRow, snakeCol]) =>
+        nextMove[0] === snakeRow && nextMove[1] === snakeCol
+    );
+
+    const isOutOfBounds =
+      nextMove[0] < 0 ||
+      nextMove[0] >= state.board.length ||
+      nextMove[1] < 0 ||
+      nextMove[1] >= state.board[0].length;
+
+    switch (true) {
+      case isGrape:
+        moveSnake("IS_GRAPE");
+        selectGrape();
+        state.score += 1000;
+        localStorage.setItem("previousScore", String(state.score));
+        document.getElementById(
+          "gameMessage"
+        ).innerText = `Current Score: ${state.score}`;
+        break;
+      case isSnake || isOutOfBounds:
+        moveSnake("COLLISION");
+        document.removeEventListener("keydown", keydownListener);
+        document.getElementById("gameMessage").innerText = "You lose :(";
+        break;
+      default:
+        moveSnake();
     }
   }, newTimeBetweenFire);
 };
 
-createBoard(25, 25);
-drawSnake();
-drawGrape();
-// add event listener to start game button that invokes controlSnake
-controlSnake();
+window.onload = () => {
+  createBoard(25, 25);
+  drawSnake();
+  selectGrape();
+};
 
-let myInterval = updateInterval(currentTimeBetweenFires);
+function startGame() {
+  document.getElementById("gameMessage").innerText = "Current Score: 0";
+  controlSnake();
+  updateInterval(currentTimeBetweenFires);
+}
+
+const START_GAME_BTN = document.getElementById("game-start");
+START_GAME_BTN.addEventListener("click", () => startGame());
 
 const modifyInterval = (newTimeBetweenFire) => {
   if (isNaN(+newTimeBetweenFire) || newTimeBetweenFire < 0) {
@@ -230,11 +226,4 @@ GAME_DIFFICULTY.addEventListener("change", (e) => {
   }
 
   modifyInterval(newIntervalTime);
-  // console.log("newInterval is: ", newIntervalTime);
 });
-
-// const startButton = document.getElementById("game-start");
-// startButton.addEventListener("click", startGame());
-
-// const restartButton = document.getElementById("restart");
-// restartButton.addEventListener("click", restartGame());
